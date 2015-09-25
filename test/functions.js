@@ -89,6 +89,27 @@
     _.partial.placeholder = _;
   });
 
+  test('comb', function(assert){
+    var testFunc1 = function(a, b, c) {
+        return "Func1 " + b;
+    }, testFunc2 = function(a, b, c) {
+        return "Func2 " + b;
+    }, testFunc3 = function(a, b, c) {
+        return "Func3 " + b;
+    }, defFunc = function(a, b, c) {
+        return "Default"
+    };
+
+    var testFunc = _.comb(defFunc)
+        .case(0, _, 0, testFunc1)
+        .case(0, _, 1, testFunc2)
+        .case(1, _, _, testFunc3)
+
+    assert.equal(testFunc(0, "Case 1", 0), "Func1 Case 1");
+    assert.equal(testFunc(0, "Case 2", 1), "Func2 Case 2");
+    assert.equal(testFunc(1, "Case 3", 1), "Func2 Case 2");
+  })
+
   test('bindAll', function(assert) {
     var curly = {name: 'curly'}, moe = {
       name: 'moe',
