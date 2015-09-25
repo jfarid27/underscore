@@ -89,7 +89,7 @@
     _.partial.placeholder = _;
   });
 
-  test('comb', function(assert){
+  test('comb', function(){
     var testFunc1 = function(a, b, c) {
         return "Func1 " + b;
     }, testFunc2 = function(a, b, c) {
@@ -100,14 +100,37 @@
         return "Default"
     };
 
-    var testFunc = _.comb(defFunc)
-        .case(0, _, 0, testFunc1)
-        .case(0, _, 1, testFunc2)
-        .case(1, _, _, testFunc3)
+    var testFunc = _.comb(defFunc);
 
-    assert.equal(testFunc(0, "Case 1", 0), "Func1 Case 1");
-    assert.equal(testFunc(0, "Case 2", 1), "Func2 Case 2");
-    assert.equal(testFunc(1, "Case 3", 1), "Func2 Case 2");
+    var setDefault = testFunc._default()
+    assert.equal(setDefault(), "Default", "Properly loads default function when initialized")
+
+    //Single function tests
+    testFunc.case(0, _, 0, testFunc1);
+    var setCase1 = testFunc._funcs()[0]
+    var setPattern1 = testFunc._patterns()[0]
+    assert.equal(setCase1.apply(null, ["foo", "bar", "zed"]), "Func1 bar", "Properly stores functions with case method");
+    assert.deepEqual([0, _, 0], setPattern1, "Properly stores patterns with case method");
+
+    //Tests for default matcher
+    var defMatch = testFunc._matcher();
+    var val1 = [0, "foo", _],
+        val2 = [0, "foo", "bar"],
+        val3 = [1, "bar", "zed"];
+
+    assert.equal(defMatch(val1, val2), true, "Properly matches given values with given array to match to: 1");
+    assert.equal(defMatch(val1, val3), false, "Properly matches given values with given array to match to: 2");
+    assert.equal(defMatch(val2, val2), true, "Properly matches given values with given array to match to: 3");
+    assert.equal(defMatch(val2, val3), false, "Properly matches given values with given array to match to: 4");
+
+    //Tests using main caller using matcher
+    testFunc.case(0, _, 1, testFunc2)
+    testFunc.case(1, _, _, testFunc3)
+
+    assert.equal(testFunc(0, "Case 1", 0), "Func1 Case 1", "Properly calls function based on case: 1");
+    assert.equal(testFunc(0, "Case 2", 1), "Func2 Case 2", "Properly calls function based on case: 2");
+    assert.equal(testFunc(1, "Case 3", 1), "Func3 Case 3", "Properly calls function based on case: 3");
+    assert.equal(testFunc("foo", "Case 3", 1), "Default", "Properly calls default function if no case matches");
   })
 
   test('bindAll', function(assert) {

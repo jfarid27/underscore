@@ -924,6 +924,84 @@
 
   _.restArgs = restArgs;
 
+  // Returns a function that allows defining functions to be called depending on
+  //  case defined argument values. Similar to pattern matching values.
+  _.comb = function(def) {
+    var _default = def,
+    patterns = [],
+    funcs = [];
+
+    var matcher = function(given, match) {
+      var doesMatch = _.reduce(given, function(prev, next, i){
+        var result = false;
+        if (next.VERSION || next === match[i]) { //test to see if given parameter is an underscore instance
+          result = true && prev;
+        }
+        return result;
+      }, true);
+
+      return doesMatch;
+    };
+
+    var exp = function() {
+      //Collect arguments function was called with
+      var _args = [];
+      for (var i = 0; i < arguments.length; i++){
+        _args.push(arguments[i]);
+      };
+
+      //Find a matching pattern along with its index
+      var match = null
+      for (var j = 0; j < patterns.length; j++){
+        if (matcher(patterns[j], _args)) {
+          match = {
+            index: j
+          };
+        }
+      }
+
+      //If it didn't find a matching pattern, return the arguments called with default
+      if (match === null) {
+        return _default.apply(null, _args);
+      }
+
+      //Otherwise return the arguments called with the matching function
+      return funcs[match.index].apply(null, _args);
+    };
+
+    exp._matcher = function(){
+        return matcher
+    }
+    exp._default = function() {
+        return _default;
+    };
+    exp._patterns = function() {
+      return patterns
+    };
+    exp._funcs = function(){
+      return funcs
+    };
+
+    exp.case = function() {
+      var _args = [];
+      for (var i = 0; i < arguments.length; i++){
+        _args.push(arguments[i]);
+      };
+
+      var _patterns = [];
+      for (var i = 0; i < _args.length - 1; i++){
+        _patterns.push(_args[i]);
+      }
+      var _func = _args[_args.length-1];
+
+      patterns.push(_patterns);
+      funcs.push(_func);
+      return exp;
+    };
+
+    return exp;
+  }
+
   // Object Functions
   // ----------------
 
