@@ -132,6 +132,21 @@
     assert.equal(testFunc(0, 'Case 2', 1), 'Func2 Case 2', 'Properly calls function based on case: 2');
     assert.equal(testFunc(1, 'Case 3', 1), 'Func3 Case 3', 'Properly calls function based on case: 3');
     assert.equal(testFunc('foo', 'Case 3', 1), 'Default', 'Properly calls default function if no case matches');
+
+    //Test to make sure fixed values are prioritized over arbitrary values
+    testFunc.link(2, 2, _, 'Given Value');
+    testFunc.link(2, 2, 2, 'Given Value Fixed');
+    assert.equal(testFunc(2, 2, 2), 'Given Value Fixed', 'Properly defined given value call with fixed parameters');
+    assert.equal(testFunc(2, 2, 'bar'), 'Given Value', 'Properly defined given value call with arbitrary parameters');
+
+    //Test to make sure last fixed value definition is prioritized
+    testFunc.link(2, 2, 2, 'Second def');
+    assert.equal(testFunc(2, 2, 2), 'Second def', 'Properly overwrites fixed value parameters');
+
+    //Test to make sure arbitrary values overwrites previous arbitray values
+    testFunc.link(1, _, _, 'New Fixed');
+    assert.equal(testFunc(1, 'Case 3', 1), 'New Fixed', 'Properly overwrites previous arbitrary value parameters');
+
   });
 
   test('bindAll', function(assert) {

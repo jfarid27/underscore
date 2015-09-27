@@ -942,6 +942,17 @@
       return doesMatch;
     };
 
+    var patternHasArbitrary = function(pattern) {
+      var does = false;
+      for (var i = 0; i < pattern.length; i++) {
+        if (pattern[i].VERSION) {
+          does = true;
+          break;
+        }
+      }
+      return does;
+    };
+
     var exp = function() {
       //Collect arguments function was called with
       var _args = [];
@@ -952,9 +963,21 @@
       var match = null;
       for (var j = 0; j < _patterns.length; j++) {
         if (_matcher(_patterns[j], _args)) {
-          match = {
-            index: j
-          };
+          if ( patternHasArbitrary(_patterns[j])) {
+            if (!match) {
+              match = {
+                index: j
+              };
+            } else if (patternHasArbitrary(_patterns[match.index])) {
+              match = {
+                index: j
+              };
+            }
+          } else {
+            match = {
+              index: j
+            };
+          }
         }
       }
       //If it didn't find a matching pattern, return the arguments called with default
@@ -990,7 +1013,15 @@
       for (var j = 0; j < _args.length - 1; j++) {
         newpattern.push(_args[j]);
       }
-      var _func = _args[_args.length - 1];
+      var lastValue = _args[_args.length - 1],
+          _func = null;
+      if (_.isFunction(lastValue)){
+        _func = lastValue;
+      } else {
+        _func = function() {
+          return lastValue;
+        };
+      }
       _patterns.push(newpattern);
       _funcs.push(_func);
       return exp;
